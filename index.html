@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Comandas Premium</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #d4af37; /* Bronze/Dourado */
+            --text-color: #ffffff;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h2 { text-align: center; color: var(--accent-color); margin-bottom: 1.5rem; }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: #2a2a2a;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: 0.3s;
+        }
+
+        button:hover { opacity: 0.8; }
+
+        .hidden { display: none; }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .open { background: #d4af37; color: #000; }
+        .closed { background: #4caf50; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="login-container">
+        <h2>Acesso Restrito</h2>
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="password" placeholder="Senha">
+        <button onclick="handleLogin()">Entrar</button>
+    </div>
+
+    <div class="container hidden" id="atendente-panel">
+        <h2>Nova Comanda</h2>
+        <input type="number" id="comanda-num" placeholder="Últimos 4 números" maxlength="4">
+        <input type="file" id="comanda-foto" accept="image/*" capture="camera">
+        <button onclick="saveComanda()">Registrar Entrada</button>
+        <button style="background: transparent; color: #999; border: 1px solid #333;" onclick="logout()">Sair</button>
+    </div>
+
+    <div class="container hidden" id="admin-panel">
+        <h2>Controle de Comandas</h2>
+        <div id="lista-comandas">
+            </div>
+        <button style="margin-top:20px; background: transparent; color: #999; border: 1px solid #333;" onclick="logout()">Sair</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
