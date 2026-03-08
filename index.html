@@ -9,7 +9,12 @@
         body { background: var(--dark); color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: var(--card); padding: 30px; border-radius: 15px; border: 1px solid #333; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h2 { color: var(--gold); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Estilo para o campo de senha com olho */
+        .password-container { position: relative; width: 100%; }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; }
+        .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--gold); font-size: 0.8rem; font-weight: bold; }
+        
         button { width: 100%; padding: 14px; background: var(--gold); color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .item-comanda { background: #252525; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--gold); }
         .concluido { border-left-color: #4caf50; opacity: 0.5; }
@@ -21,7 +26,10 @@
     <div id="login-screen" class="container">
         <h2>GOLDS-BEER</h2>
         <input type="text" id="user" placeholder="Usuário (atendentes ou geral)">
-        <input type="password" id="pass" placeholder="Senha">
+        <div class="password-container">
+            <input type="password" id="pass" placeholder="Senha">
+            <span class="toggle-password" onclick="togglePassword()">VER</span>
+        </div>
         <button onclick="handleLogin()">ENTRAR</button>
     </div>
 
@@ -43,7 +51,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
     <script>
-        // CONFIGURAÇÃO DO SEU PROJETO (COLE AQUI O QUE PEGAR NO FIREBASE)
+        // CONFIGURAÇÃO DO SEU PROJETO (IMPORTANTE: SUBSTITUA PELAS SUAS CHAVES DO FIREBASE)
         const firebaseConfig = {
             apiKey: "SUA_API_KEY",
             authDomain: "SEU_PROJETO.firebaseapp.com",
@@ -54,6 +62,19 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // Função para mostrar/esconder senha
+        function togglePassword() {
+            const passInput = document.getElementById('pass');
+            const toggleBtn = document.querySelector('.toggle-password');
+            if (passInput.type === "password") {
+                passInput.type = "text";
+                toggleBtn.innerText = "OCULTAR";
+            } else {
+                passInput.type = "password";
+                toggleBtn.innerText = "VER";
+            }
+        }
 
         function handleLogin() {
             const user = document.getElementById('user').value.toLowerCase();
