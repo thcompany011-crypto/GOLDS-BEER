@@ -1,0 +1,15 @@
+{
+  "name": "Golds-Beer Sistema",
+  "short_name": "Golds-Beer",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#d4af37",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/931/931949.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
