@@ -9,8 +9,10 @@
         body { background: var(--dark); color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 10px; box-sizing: border-box; }
         .container { background: var(--card); padding: 30px; border-radius: 15px; border: 1px solid #333; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h2 { color: var(--gold); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; outline: none; margin-bottom: 12px; font-size: 1rem; }
+        .input-group { position: relative; width: 100%; margin-bottom: 12px; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; outline: none; font-size: 1rem; }
         input:focus { border-color: var(--gold); }
+        .toggle-pass { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--gold); cursor: pointer; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
         button { width: 100%; padding: 14px; background: var(--gold); color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; text-transform: uppercase; transition: 0.3s; }
         button:active { transform: scale(0.98); }
         .hidden { display: none; }
@@ -28,87 +30,97 @@
 
     <div id="login-screen" class="container">
         <h2>GOLDS-BEER</h2>
-        <input type="text" id="user" placeholder="USUÁRIO">
-        <input type="password" id="pass" placeholder="SENHA">
+        <div class="input-group">
+            <input type="text" id="user" placeholder="USUÁRIO">
+        </div>
+        <div class="input-group">
+            <input type="password" id="pass" placeholder="SENHA">
+            <span class="toggle-pass" onclick="togglePassword()">VER</span>
+        </div>
         <button onclick="verificarLogin()">ENTRAR</button>
     </div>
 
     <div id="main-screen" class="container hidden">
         <h2 id="welcome-msg">PAINEL</h2>
-        
         <div id="area-registro">
             <input type="number" id="numComanda" placeholder="4 NÚMEROS DA COMANDA">
             <input type="text" id="detalhePedido" placeholder="O QUE O CLIENTE PEDIU?">
             <button id="btn-registrar" onclick="registrarComanda()">REGISTRAR PEDIDO</button>
         </div>
-        
         <div id="log-lista">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <small style="color: #666; font-weight: bold;">HISTÓRICO:</small>
                 <button id="btn-limpar" class="hidden" onclick="limparHistorico()" style="width: auto; padding: 4px 8px; font-size: 0.6rem; background: #c0392b; color: #fff; margin: 0;">LIMPAR TUDO</button>
             </div>
             <span id="status-carga" class="loading hidden">Sincronizando...</span>
-            <div id="itens" class="lista-itens">Carregando pedidos...</div>
+            <div id="itens" class="lista-itens">Carregando...</div>
         </div>
-        
-        <button onclick="location.reload()" style="background:transparent; color:gray; border:1px solid #333; margin-top:20px; font-size: 0.8rem;">SAIR DO SISTEMA</button>
+        <button onclick="fazerLogout()" style="background:transparent; color:gray; border:1px solid #333; margin-top:20px; font-size: 0.8rem;">SAIR DO SISTEMA</button>
     </div>
 
     <script>
-        // SEU LINK DO GOOGLE SCRIPT GERADO
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEKZRup1ROPkKkDubrCXplvMxOKL_ZbO9mc_ZSiv2RVXlCKh5uCAvJa4BtKFzFJR5UTA/exec";
-        
         const ACESSOS = { "atendentes": "Goldsbeer", "geral": "Goldsbeer2026" };
         let usuarioLogado = "";
+
+        // Tenta recuperar o login ao carregar a página
+        window.onload = function() {
+            const salvo = localStorage.getItem('goldsbeer_user');
+            if (salvo && ACESSOS[salvo]) {
+                iniciarPainel(salvo);
+            }
+        };
+
+        function togglePassword() {
+            const p = document.getElementById('pass');
+            const btn = document.querySelector('.toggle-pass');
+            if (p.type === "password") {
+                p.type = "text";
+                btn.innerText = "OCULTAR";
+            } else {
+                p.type = "password";
+                btn.innerText = "VER";
+            }
+        }
 
         function verificarLogin() {
             const u = document.getElementById('user').value.toLowerCase();
             const p = document.getElementById('pass').value;
-            
             if (ACESSOS[u] && ACESSOS[u] === p) {
-                usuarioLogado = u;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-screen').classList.remove('hidden');
-                document.getElementById('welcome-msg').innerText = "OLÁ, " + u.toUpperCase();
-                
-                if(u === "geral") {
-                    document.getElementById('btn-limpar').classList.remove('hidden');
-                }
-                
-                atualizarDados();
-                setInterval(atualizarDados, 7000); // Atualiza a cada 7 segundos
+                localStorage.setItem('goldsbeer_user', u);
+                iniciarPainel(u);
             } else { alert("ACESSO NEGADO!"); }
+        }
+
+        function iniciarPainel(user) {
+            usuarioLogado = user;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
+            document.getElementById('welcome-msg').innerText = "OLÁ, " + user.toUpperCase();
+            if(user === "geral") document.getElementById('btn-limpar').classList.remove('hidden');
+            atualizarDados();
+            setInterval(atualizarDados, 7000);
+        }
+
+        function fazerLogout() {
+            localStorage.removeItem('goldsbeer_user');
+            location.reload();
         }
 
         async function registrarComanda() {
             const n = document.getElementById('numComanda').value;
             const d = document.getElementById('detalhePedido').value;
             const btn = document.getElementById('btn-registrar');
-            
-            if(!n || !d) return alert("POR FAVOR, PREENCHA A COMANDA E O PEDIDO!");
-            
-            btn.disabled = true;
-            btn.innerText = "ENVIANDO...";
-            
-            const novoPedido = {
-                action: 'add',
-                id: Date.now(),
-                numero: n,
-                pedido: d,
-                hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-            };
-
+            if(!n || !d) return alert("PREENCHA TUDO!");
+            btn.disabled = true; btn.innerText = "ENVIANDO...";
+            const pedido = { action: 'add', id: Date.now(), numero: n, pedido: d, hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) };
             try {
-                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(novoPedido) });
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(pedido) });
                 document.getElementById('numComanda').value = "";
                 document.getElementById('detalhePedido').value = "";
-                await atualizarDados();
-            } catch (e) {
-                alert("ERRO AO ENVIAR. TENTE NOVAMENTE.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "REGISTRAR PEDIDO";
-            }
+                atualizarDados();
+            } catch (e) { alert("ERRO."); }
+            finally { btn.disabled = false; btn.innerText = "REGISTRAR PEDIDO"; }
         }
 
         async function atualizarDados() {
@@ -117,29 +129,21 @@
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
                 renderizarLista(data);
-            } catch (e) {
-                console.error("Erro ao buscar dados");
-            } finally {
-                document.getElementById('status-carga').classList.add('hidden');
-            }
+            } catch (e) { console.log("Erro na rede"); }
+            finally { document.getElementById('status-carga').classList.add('hidden'); }
         }
 
         async function marcarAprovado(id, valor) {
-            await fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ action: 'approve', id: id, value: valor }) 
-            });
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'approve', id: id, value: valor }) });
         }
 
         function renderizarLista(lista) {
             const container = document.getElementById('itens');
             const isGeral = usuarioLogado === "geral";
-            
-            if (lista.length === 0) {
-                container.innerHTML = "<p style='color:#666; font-size:0.8rem; text-align:center;'>Nenhum pedido pendente.</p>";
+            if (!lista || lista.length === 0) {
+                container.innerHTML = "<p style='color:#666; font-size:0.8rem; text-align:center;'>Nenhum pedido.</p>";
                 return;
             }
-
             container.innerHTML = lista.map(item => `
                 <div class="item">
                     ${isGeral ? `<input type="checkbox" ${item.aprovado ? 'checked' : ''} onclick="marcarAprovado(${item.id}, this.checked)">` : ''}
@@ -148,11 +152,11 @@
                         <span class="pedido-texto">${item.pedido}</span>
                     </div>
                 </div>
-            `).reverse().join(''); // Mostra os mais recentes primeiro
+            `).reverse().join('');
         }
 
         async function limparHistorico() {
-            if(confirm("DESEJA APAGAR TODOS OS PEDIDOS DA PLANILHA?")) {
+            if(confirm("LIMPAR TUDO?")) {
                 await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'clear' }) });
                 atualizarDados();
             }
