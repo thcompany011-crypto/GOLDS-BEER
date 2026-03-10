@@ -4,29 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Golds-beer | Sistema</title>
-    <link rel="manifest" href="manifest.json">
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-      }
-    </script>
     <style>
         :root { --gold: #d4af37; --dark: #121212; --card: #1e1e1e; }
-        body { background: var(--dark); color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: var(--card); padding: 30px; border-radius: 15px; border: 1px solid #333; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        body { background: var(--dark); color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 10px; box-sizing: border-box; }
+        .container { background: var(--card); padding: 30px; border-radius: 15px; border: 1px solid #333; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h2 { color: var(--gold); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; outline: none; font-size: 1rem; margin-bottom: 12px; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; outline: none; margin-bottom: 12px; font-size: 1rem; }
         input:focus { border-color: var(--gold); }
-        button { width: 100%; padding: 14px; background: var(--gold); color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; text-transform: uppercase; }
+        button { width: 100%; padding: 14px; background: var(--gold); color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; text-transform: uppercase; transition: 0.3s; }
+        button:active { transform: scale(0.98); }
         .hidden { display: none; }
         #log-lista { text-align: left; margin-top: 20px; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; }
-        .lista-itens { max-height: 250px; overflow-y: auto; margin-top: 10px; }
-        .item { padding: 10px 0; border-bottom: 1px solid #222; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+        .lista-itens { max-height: 300px; overflow-y: auto; margin-top: 10px; }
+        .item { padding: 12px 0; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 12px; }
         .item-info { flex-grow: 1; }
-        .item b { color: var(--gold); }
-        .item .pedido-texto { display: block; color: #bbb; margin-top: 4px; font-style: italic; }
-        #btn-limpar { width: auto; padding: 4px 8px; font-size: 0.6rem; background: #c0392b; color: #fff; margin: 0; }
-        input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); cursor: pointer; margin: 0; }
+        .item b { color: var(--gold); font-size: 1.1rem; }
+        .pedido-texto { display: block; color: #ccc; margin-top: 4px; font-style: italic; font-size: 0.9rem; }
+        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--gold); cursor: pointer; margin: 0; }
+        .loading { color: var(--gold); font-size: 0.8rem; margin-top: 10px; display: block; }
     </style>
 </head>
 <body>
@@ -41,23 +36,28 @@
     <div id="main-screen" class="container hidden">
         <h2 id="welcome-msg">PAINEL</h2>
         
-        <input type="number" id="numComanda" placeholder="4 DÍGITOS DA COMANDA">
-        <input type="text" id="detalhePedido" placeholder="O QUE O CLIENTE PEDIU?">
-        
-        <button onclick="registrarComanda()">REGISTRAR PEDIDO</button>
+        <div id="area-registro">
+            <input type="number" id="numComanda" placeholder="4 NÚMEROS DA COMANDA">
+            <input type="text" id="detalhePedido" placeholder="O QUE O CLIENTE PEDIU?">
+            <button id="btn-registrar" onclick="registrarComanda()">REGISTRAR PEDIDO</button>
+        </div>
         
         <div id="log-lista">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <small style="color: #666; font-weight: bold;">HISTÓRICO:</small>
-                <button id="btn-limpar" class="hidden" onclick="limparHistorico()">LIMPAR TUDO</button>
+                <button id="btn-limpar" class="hidden" onclick="limparHistorico()" style="width: auto; padding: 4px 8px; font-size: 0.6rem; background: #c0392b; color: #fff; margin: 0;">LIMPAR TUDO</button>
             </div>
-            <div id="itens" class="lista-itens"></div>
+            <span id="status-carga" class="loading hidden">Sincronizando...</span>
+            <div id="itens" class="lista-itens">Carregando pedidos...</div>
         </div>
         
-        <button onclick="location.reload()" style="background:transparent; color:gray; border:1px solid #333; margin-top:15px; font-size: 0.8rem;">SAIR</button>
+        <button onclick="location.reload()" style="background:transparent; color:gray; border:1px solid #333; margin-top:20px; font-size: 0.8rem;">SAIR DO SISTEMA</button>
     </div>
 
     <script>
+        // SEU LINK DO GOOGLE SCRIPT GERADO
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEKZRup1ROPkKkDubrCXplvMxOKL_ZbO9mc_ZSiv2RVXlCKh5uCAvJa4BtKFzFJR5UTA/exec";
+        
         const ACESSOS = { "atendentes": "Goldsbeer", "geral": "Goldsbeer2026" };
         let usuarioLogado = "";
 
@@ -75,59 +75,86 @@
                     document.getElementById('btn-limpar').classList.remove('hidden');
                 }
                 
-                carregarDadosSalvos();
-            } else { alert("ACESSO INVÁLIDO!"); }
+                atualizarDados();
+                setInterval(atualizarDados, 7000); // Atualiza a cada 7 segundos
+            } else { alert("ACESSO NEGADO!"); }
         }
 
-        function registrarComanda() {
+        async function registrarComanda() {
             const n = document.getElementById('numComanda').value;
             const d = document.getElementById('detalhePedido').value;
+            const btn = document.getElementById('btn-registrar');
             
-            if(n.length < 1 || d === "") return alert("PREENCHA OS CAMPOS!");
+            if(!n || !d) return alert("POR FAVOR, PREENCHA A COMANDA E O PEDIDO!");
             
-            const id = Date.now(); // ID único para cada pedido
-            const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            let historico = JSON.parse(localStorage.getItem('golds_history') || "[]");
+            btn.disabled = true;
+            btn.innerText = "ENVIANDO...";
             
-            historico.unshift({ id: id, numero: n, pedido: d, hora: hora, aprovado: false });
-            localStorage.setItem('golds_history', JSON.stringify(historico));
-            
-            document.getElementById('numComanda').value = "";
-            document.getElementById('detalhePedido').value = "";
-            renderizarLista(historico);
+            const novoPedido = {
+                action: 'add',
+                id: Date.now(),
+                numero: n,
+                pedido: d,
+                hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(novoPedido) });
+                document.getElementById('numComanda').value = "";
+                document.getElementById('detalhePedido').value = "";
+                await atualizarDados();
+            } catch (e) {
+                alert("ERRO AO ENVIAR. TENTE NOVAMENTE.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "REGISTRAR PEDIDO";
+            }
         }
 
-        function carregarDadosSalvos() {
-            renderizarLista(JSON.parse(localStorage.getItem('golds_history') || "[]"));
+        async function atualizarDados() {
+            document.getElementById('status-carga').classList.remove('hidden');
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                renderizarLista(data);
+            } catch (e) {
+                console.error("Erro ao buscar dados");
+            } finally {
+                document.getElementById('status-carga').classList.add('hidden');
+            }
         }
 
-        function toggleAprovacao(id) {
-            let historico = JSON.parse(localStorage.getItem('golds_history') || "[]");
-            historico = historico.map(item => {
-                if(item.id === id) item.aprovado = !item.aprovado;
-                return item;
+        async function marcarAprovado(id, valor) {
+            await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'approve', id: id, value: valor }) 
             });
-            localStorage.setItem('golds_history', JSON.stringify(historico));
         }
 
         function renderizarLista(lista) {
+            const container = document.getElementById('itens');
             const isGeral = usuarioLogado === "geral";
-            document.getElementById('itens').innerHTML = lista.map(item => `
+            
+            if (lista.length === 0) {
+                container.innerHTML = "<p style='color:#666; font-size:0.8rem; text-align:center;'>Nenhum pedido pendente.</p>";
+                return;
+            }
+
+            container.innerHTML = lista.map(item => `
                 <div class="item">
-                    ${isGeral ? `<input type="checkbox" ${item.aprovado ? 'checked' : ''} onclick="toggleAprovacao(${item.id})">` : ''}
+                    ${isGeral ? `<input type="checkbox" ${item.aprovado ? 'checked' : ''} onclick="marcarAprovado(${item.id}, this.checked)">` : ''}
                     <div class="item-info">
                         <span><b># ${item.numero}</b> - ${item.hora}</span>
                         <span class="pedido-texto">${item.pedido}</span>
                     </div>
                 </div>
-            `).join('');
+            `).reverse().join(''); // Mostra os mais recentes primeiro
         }
 
-        function limparHistorico() {
-            if(usuarioLogado !== "geral") return;
-            if(confirm("CONFIRMA A EXCLUSÃO DE TODO O HISTÓRICO?")) {
-                localStorage.removeItem('golds_history');
-                renderizarLista([]);
+        async function limparHistorico() {
+            if(confirm("DESEJA APAGAR TODOS OS PEDIDOS DA PLANILHA?")) {
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'clear' }) });
+                atualizarDados();
             }
         }
     </script>
