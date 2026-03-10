@@ -19,26 +19,30 @@
         .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
         .tab-btn { background: #333; color: #888; padding: 10px; font-size: 0.75rem; flex: 1; border-radius: 5px; border: 1px solid #444; font-weight: bold; cursor: pointer; }
         .tab-btn.active { background: var(--gold); color: black; }
-        .quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; justify-content: center; }
-        .tag-btn { background: #2a2a2a; border: 1px solid var(--gold); color: var(--gold); padding: 7px 14px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; }
         #log-lista { text-align: left; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-top: 15px; }
-        .lista-itens { max-height: 380px; overflow-y: auto; }
-        .item { padding: 12px 0; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 12px; }
+        .lista-itens { max-height: 420px; overflow-y: auto; }
+        .item { padding: 12px 0; border-bottom: 1px solid #222; display: flex; align-items: flex-start; gap: 12px; }
         .item-info { flex-grow: 1; }
         .item b { color: var(--gold); font-size: 1.1rem; }
         .detalhes { display: block; color: #ccc; margin-top: 4px; font-size: 0.9rem; font-weight: 500; }
         .atendente-tag { font-size: 0.75rem; color: #777; display: block; margin-top: 3px; font-style: italic; }
-        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--gold); cursor: pointer; }
+        .confirmado-tag { font-size: 0.75rem; color: #97d997; display: block; margin-top: 3px; font-style: italic; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: bold; margin-left: 8px; text-transform: uppercase; }
+        .status-aberto { background: #6a5200; color: #fff1b0; }
+        .status-confirmado { background: #165c16; color: #b9ffb9; }
         .loading { color: var(--gold); font-size: 0.8rem; display: block; text-align: center; margin-bottom: 10px; }
-        /* MODAL PERSONALIZADO */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .preview-img, .item-img { width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid #333; object-fit: cover; max-height: 220px; }
+        .logout-btn { background: transparent; color: gray; border: 1px solid #333; margin-top: 20px; font-size: 0.75rem; }
+        .small-tip { color: #888; font-size: 0.78rem; text-align: left; margin-top: -4px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen" class="container">
         <h2>GOLDS-BEER</h2>
-        <div class="input-group"><input type="text" id="user" placeholder="USUÁRIO"></div>
+        <div class="input-group">
+            <input type="text" id="user" placeholder="USUÁRIO">
+        </div>
         <div class="input-group">
             <input type="password" id="pass" placeholder="SENHA">
             <span class="toggle-pass" onclick="togglePassword()">VER</span>
@@ -46,58 +50,64 @@
         <button onclick="verificarLogin()">ENTRAR</button>
     </div>
 
-    <div id="modal-atendente" class="modal-overlay hidden">
-        <div class="container" style="max-width:320px; border: 2px solid var(--gold);">
-            <h2>QUEM ESTÁ ATENDENDO?</h2>
-            <input type="text" id="input-nome-atendente" placeholder="DIGITE SEU NOME">
-            <button onclick="confirmarNomeAtendente()">CONFIRMAR</button>
-        </div>
-    </div>
-
     <div id="main-screen" class="container hidden">
         <h2 id="welcome-msg">CARREGANDO...</h2>
-        
-        <div id="area-registro">
-            <input type="number" id="numComanda" placeholder="Nº COMANDA" inputmode="numeric">
+
+        <div id="area-registro" class="hidden">
+            <input type="text" id="numComanda" placeholder="NÚMERO DA COMANDA" inputmode="numeric" oninput="mostrarUltimos4()">
+            <div class="small-tip">O sistema salva apenas os 4 últimos números.</div>
+
+            <input type="text" id="ultimos4" placeholder="ÚLTIMOS 4 NÚMEROS" readonly>
+
             <div style="margin-top:10px;">
-                <input type="text" id="detalhePedido" placeholder="PEDIDO (EX: BRAHMA 600)">
+                <input type="file" id="fotoComanda" accept="image/*" capture="environment" onchange="carregarFoto(event)">
             </div>
-            <div id="quick-suggestions" class="quick-tags"></div>
-            <button id="btn-registrar" onclick="registrarComanda()">REGISTRAR PEDIDO</button>
+
+            <img id="previewFoto" class="preview-img hidden" alt="Prévia da comanda">
+
+            <button id="btn-registrar" onclick="registrarComanda()">REGISTRAR COMANDA</button>
         </div>
 
         <div id="area-abas" class="tabs hidden">
-            <button class="tab-btn active" id="tab-pend" onclick="mudarAba('pendentes')">PENDENTES</button>
-            <button class="tab-btn" id="tab-incl" onclick="mudarAba('incluidos')">INCLUÍDOS</button>
+            <button class="tab-btn active" id="tab-pend" onclick="mudarAba('aberto')">EM ABERTO</button>
+            <button class="tab-btn" id="tab-incl" onclick="mudarAba('confirmado')">CONFIRMADOS</button>
         </div>
-        
+
         <div id="log-lista">
             <span id="status-carga" class="loading hidden">Sincronizando...</span>
             <div id="itens" class="lista-itens">Buscando dados...</div>
             <button id="btn-limpar" class="hidden" onclick="limparHistorico()" style="width:100%; padding:8px; background:#8b0000; color:white; margin-top:15px; font-size:0.7rem; border-radius:5px; border:none;">LIMPAR HISTÓRICO</button>
         </div>
-        <button onclick="fazerLogout()" style="background:transparent; color:gray; border:1px solid #333; margin-top:20px; font-size:0.75rem;">SAIR DO SISTEMA</button>
+
+        <button onclick="fazerLogout()" class="logout-btn">SAIR DO SISTEMA</button>
     </div>
 
     <script>
-        // COLOQUE O SEU LINK /EXEC AQUI
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyh6KGmqjDlI2MxyHdQ-lwimvGq863kV-JymTJNKFJuOnt6LlDhGVSIkmim3LljdRwNDw/exec";
-        
-        const ACESSOS = { "atendentes": "Goldsbeer", "geral": "Goldsbeer2026" };
+
+        const ACESSOS = {
+            "matheus": { senha: "Goldsbeer1003", tipo: "atendente", nome: "Matheus" },
+            "alex th": { senha: "Goldsbeer11", tipo: "atendente", nome: "Alex Th" },
+            "novo": { senha: "teste123", tipo: "atendente", nome: "Novo" },
+            "comferencia": { senha: "admingoldsbeer2026", tipo: "conferencia", nome: "Conferência" }
+        };
+
         let usuarioLogado = "";
         let nomeAtendente = "";
-        let abaAtual = "pendentes";
+        let tipoUsuario = "";
+        let abaAtual = "aberto";
         let cachePedidos = [];
+        let fotoBase64 = "";
+        let intervaloAtualizacao = null;
 
-        window.onload = function() {
+        window.onload = function () {
             const u = localStorage.getItem('gb_user');
-            const n = localStorage.getItem('gb_nome');
             if (u && ACESSOS[u]) {
                 usuarioLogado = u;
-                nomeAtendente = n || "Atendente";
+                nomeAtendente = ACESSOS[u].nome;
+                tipoUsuario = ACESSOS[u].tipo;
                 iniciarPainel();
             }
-            carregarSugestoes();
         };
 
         function togglePassword() {
@@ -108,116 +118,238 @@
         function verificarLogin() {
             const u = document.getElementById('user').value.toLowerCase().trim();
             const p = document.getElementById('pass').value.trim();
-            if (ACESSOS[u] === p) {
-                usuarioLogado = u;
-                localStorage.setItem('gb_user', u);
-                // Em vez de prompt, abre a janela personalizada
-                if (u === "atendentes") {
-                    document.getElementById('modal-atendente').classList.remove('hidden');
-                    document.getElementById('input-nome-atendente').focus();
-                } else { 
-                    iniciarPainel(); 
-                }
-            } else { alert("Senha incorreta!"); }
-        }
 
-        function confirmarNomeAtendente() {
-            const n = document.getElementById('input-nome-atendente').value.trim();
-            if (n) {
-                nomeAtendente = n;
-                localStorage.setItem('gb_nome', n);
-                document.getElementById('modal-atendente').classList.add('hidden');
+            if (ACESSOS[u] && ACESSOS[u].senha === p) {
+                usuarioLogado = u;
+                nomeAtendente = ACESSOS[u].nome;
+                tipoUsuario = ACESSOS[u].tipo;
+                localStorage.setItem('gb_user', u);
                 iniciarPainel();
-            } else { alert("Por favor, digite seu nome!"); }
+            } else {
+                alert("Usuário ou senha incorretos!");
+            }
         }
 
         function iniciarPainel() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-screen').classList.remove('hidden');
-            document.getElementById('welcome-msg').innerText = usuarioLogado === "geral" ? "OLÁ, CAIXA" : "OLÁ, " + nomeAtendente.toUpperCase();
-            
-            if(usuarioLogado === "geral") {
+
+            document.getElementById('welcome-msg').innerText =
+                tipoUsuario === "conferencia"
+                    ? "OLÁ, CONFERÊNCIA"
+                    : "OLÁ, " + nomeAtendente.toUpperCase();
+
+            if (tipoUsuario === "conferencia") {
                 document.getElementById('area-registro').classList.add('hidden');
                 document.getElementById('area-abas').classList.remove('hidden');
                 document.getElementById('btn-limpar').classList.remove('hidden');
+            } else {
+                document.getElementById('area-registro').classList.remove('hidden');
+                document.getElementById('area-abas').classList.add('hidden');
+                document.getElementById('btn-limpar').classList.add('hidden');
             }
+
             atualizarDados();
-            setInterval(atualizarDados, 10000);
+
+            if (intervaloAtualizacao) clearInterval(intervaloAtualizacao);
+            intervaloAtualizacao = setInterval(atualizarDados, 10000);
+        }
+
+        function mostrarUltimos4() {
+            const valor = document.getElementById('numComanda').value.replace(/\D/g, '');
+            document.getElementById('ultimos4').value = valor.slice(-4);
+        }
+
+        function carregarFoto(event) {
+            const arquivo = event.target.files[0];
+            const preview = document.getElementById('previewFoto');
+
+            if (!arquivo) {
+                fotoBase64 = "";
+                preview.src = "";
+                preview.classList.add('hidden');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                fotoBase64 = e.target.result;
+                preview.src = fotoBase64;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(arquivo);
         }
 
         async function registrarComanda() {
-            const n = document.getElementById('numComanda').value;
-            const d = document.getElementById('detalhePedido').value;
-            if(!n || !d) return alert("Preencha Nº e Pedido!");
-            
-            salvarSugestao(d);
+            const numeroCompleto = document.getElementById('numComanda').value.replace(/\D/g, '');
+            const ultimos4 = numeroCompleto.slice(-4);
+
+            if (!numeroCompleto || ultimos4.length < 4) {
+                alert("Digite a comanda. É preciso ter pelo menos 4 números.");
+                return;
+            }
+
             const btn = document.getElementById('btn-registrar');
-            btn.disabled = true; btn.innerText = "REGISTRANDO...";
+            btn.disabled = true;
+            btn.innerText = "REGISTRANDO...";
 
-            const p = { action: 'add', id: Date.now(), numero: n, pedido: d, atendente: nomeAtendente };
-            
+            const payload = {
+                action: 'add',
+                id: Date.now().toString(),
+                numero: numeroCompleto,
+                comanda: ultimos4,
+                foto: fotoBase64 || "",
+                atendente: nomeAtendente
+            };
+
             try {
-                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(p) });
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
                 document.getElementById('numComanda').value = "";
-                document.getElementById('detalhePedido').value = "";
-                atualizarDados();
-            } catch(e) { alert("Erro de conexão!"); }
-            btn.disabled = false; btn.innerText = "REGISTRAR PEDIDO";
-        }
+                document.getElementById('ultimos4').value = "";
+                document.getElementById('fotoComanda').value = "";
+                document.getElementById('previewFoto').src = "";
+                document.getElementById('previewFoto').classList.add('hidden');
+                fotoBase64 = "";
 
-        function carregarSugestoes() {
-            const s = JSON.parse(localStorage.getItem('gb_sugestoes') || "[]");
-            const tags = s.slice(-5).reverse().map(t => `<span class="tag-btn" onclick="document.getElementById('detalhePedido').value='${t}'">${t}</span>`).join('');
-            document.getElementById('quick-suggestions').innerHTML = tags;
-        }
+                await atualizarDados();
+            } catch (e) {
+                alert("Erro de conexão!");
+            }
 
-        function salvarSugestao(t) {
-            let s = JSON.parse(localStorage.getItem('gb_sugestoes') || "[]");
-            s = s.filter(x => x !== t); s.push(t);
-            localStorage.setItem('gb_sugestoes', JSON.stringify(s.slice(-10)));
-            carregarSugestoes();
+            btn.disabled = false;
+            btn.innerText = "REGISTRAR COMANDA";
         }
 
         async function atualizarDados() {
             document.getElementById('status-carga').classList.remove('hidden');
+
             try {
                 const r = await fetch(SCRIPT_URL);
-                cachePedidos = await r.json();
+                const dados = await r.json();
+
+                cachePedidos = Array.isArray(dados) ? dados : [];
                 renderizarLista(cachePedidos);
-            } catch (e) { }
+            } catch (e) {
+                document.getElementById('itens').innerHTML = "<p style='color:#444; text-align:center;'>Erro ao carregar dados</p>";
+            }
+
             document.getElementById('status-carga').classList.add('hidden');
         }
 
-        function mudarAba(aba) { abaAtual = aba; renderizarLista(cachePedidos); }
+        function mudarAba(aba) {
+            abaAtual = aba;
+            renderizarLista(cachePedidos);
+        }
 
-        async function marcarAprovado(id, val) {
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'approve', id: id, value: val }) });
-            atualizarDados();
+        async function marcarAprovado(id) {
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'confirmar',
+                        id: id,
+                        usuario: nomeAtendente || "Conferência"
+                    })
+                });
+                atualizarDados();
+            } catch (e) {
+                alert("Erro ao confirmar!");
+            }
+        }
+
+        function obterStatus(item) {
+            if (item.status) return String(item.status).toLowerCase();
+            if (item.aprovado === true) return "confirmado";
+            return "aberto";
+        }
+
+        function obterNumero(item) {
+            if (item.comanda) return item.comanda;
+            if (item.numero) return String(item.numero).slice(-4);
+            return "----";
+        }
+
+        function obterDataHora(item) {
+            return item.data || item.hora || "--:--";
+        }
+
+        function obterConfirmadoPor(item) {
+            return item.confirmado || item.confirmadoPor || "";
         }
 
         function renderizarLista(lista) {
             const box = document.getElementById('itens');
-            let filtrados = usuarioLogado === "geral" ? lista.filter(p => abaAtual === 'pendentes' ? !p.aprovado : p.aprovado) : lista;
-            
-            document.getElementById('tab-pend').className = abaAtual === 'pendentes' ? 'tab-btn active' : 'tab-btn';
-            document.getElementById('tab-incl').className = abaAtual === 'incluidos' ? 'tab-btn active' : 'tab-btn';
 
-            if (filtrados.length === 0) { box.innerHTML = "<p style='color:#444; text-align:center;'>Nenhum registro</p>"; return; }
-            
-            box.innerHTML = filtrados.map(p => `
+            let filtrados = lista.map(item => ({
+                ...item,
+                _status: obterStatus(item),
+                _numero: obterNumero(item),
+                _dataHora: obterDataHora(item),
+                _confirmadoPor: obterConfirmadoPor(item)
+            }));
+
+            if (tipoUsuario === "conferencia") {
+                filtrados = filtrados.filter(p => p._status === abaAtual);
+            } else {
+                filtrados = filtrados.filter(p => p._status === "aberto");
+            }
+
+            document.getElementById('tab-pend').className = abaAtual === 'aberto' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('tab-incl').className = abaAtual === 'confirmado' ? 'tab-btn active' : 'tab-btn';
+
+            if (filtrados.length === 0) {
+                box.innerHTML = "<p style='color:#444; text-align:center;'>Nenhum registro</p>";
+                return;
+            }
+
+            box.innerHTML = filtrados.reverse().map(p => `
                 <div class="item">
-                    ${usuarioLogado === "geral" ? `<input type="checkbox" ${p.aprovado ? 'checked' : ''} onclick="marcarAprovado('${p.id}', this.checked)">` : ''}
                     <div class="item-info">
-                        <span><b># ${p.numero}</b> - ${p.hora}</span>
-                        <span class="detalhes">${p.pedido}</span>
+                        <span>
+                            <b># ${p._numero}</b>
+                            <span class="status-badge ${p._status === 'confirmado' ? 'status-confirmado' : 'status-aberto'}">
+                                ${p._status === 'confirmado' ? 'confirmado' : 'em aberto'}
+                            </span>
+                        </span>
+
+                        <span class="detalhes">Data/Hora: ${p._dataHora}</span>
                         <span class="atendente-tag">Por: ${p.atendente || '---'}</span>
+
+                        ${p._confirmadoPor ? `<span class="confirmado-tag">Confirmado por: ${p._confirmadoPor}</span>` : ''}
+
+                        ${p.foto ? `<img class="item-img" src="${p.foto}" alt="Foto da comanda">` : ''}
+
+                        ${tipoUsuario === "conferencia" && p._status === "aberto"
+                            ? `<button onclick="marcarAprovado('${p.id}')" style="margin-top:10px;">CONFIRMAR INCLUSÃO</button>`
+                            : ''
+                        }
                     </div>
                 </div>
-            `).reverse().join('');
+            `).join('');
         }
 
-        function fazerLogout() { localStorage.clear(); location.reload(); }
-        async function limparHistorico() { if(confirm("Deseja apagar TODO o histórico?")) { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'clear' }) }); atualizarDados(); } }
+        function fazerLogout() {
+            localStorage.removeItem('gb_user');
+            location.reload();
+        }
+
+        async function limparHistorico() {
+            if (confirm("Deseja apagar TODO o histórico?")) {
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'clear' })
+                    });
+                    atualizarDados();
+                } catch (e) {
+                    alert("Erro ao limpar histórico!");
+                }
+            }
+        }
     </script>
 </body>
 </html>
