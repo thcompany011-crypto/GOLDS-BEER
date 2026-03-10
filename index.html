@@ -33,9 +33,7 @@
 
     <div id="login-screen" class="container">
         <h2>GOLDS-BEER</h2>
-        <div class="input-group">
-            <input type="text" id="user" placeholder="USUÁRIO">
-        </div>
+        <div class="input-group"><input type="text" id="user" placeholder="USUÁRIO"></div>
         <div class="input-group">
             <input type="password" id="pass" placeholder="SENHA">
             <span class="toggle-pass" onclick="togglePassword()">VER</span>
@@ -45,10 +43,9 @@
 
     <div id="main-screen" class="container hidden">
         <h2 id="welcome-msg">PAINEL</h2>
-        
         <div id="area-registro">
             <input type="number" id="numComanda" placeholder="Nº COMANDA">
-            <input type="text" id="detalhePedido" list="sugestoes" placeholder="PEDIDO (EX: BRAHMA 600)">
+            <input type="text" id="detalhePedido" list="sugestoes" placeholder="PEDIDO (EX: BRAHMA 600)" autocomplete="off">
             <datalist id="sugestoes"></datalist>
             <button id="btn-registrar" onclick="registrarComanda()">REGISTRAR</button>
         </div>
@@ -69,17 +66,13 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEKZRup1ROPkKkDubrCXplvMxOKL_ZbO9mc_ZSiv2RVXlCKh5uCAvJa4BtKFzFJR5UTA/exec";
         const ACESSOS = { "atendentes": "Goldsbeer", "geral": "Goldsbeer2026" };
-        let usuarioLogado = "";
-        let nomeAtendente = "";
+        let usuarioLogado = localStorage.getItem('gb_user') || "";
+        let nomeAtendente = localStorage.getItem('gb_nome') || "";
         let abaAtual = "pendentes";
         let cachePedidos = [];
 
         window.onload = function() {
-            const u = localStorage.getItem('gb_user');
-            const n = localStorage.getItem('gb_nome');
-            if (u && ACESSOS[u]) {
-                usuarioLogado = u;
-                nomeAtendente = n || "";
+            if (usuarioLogado && ACESSOS[usuarioLogado]) {
                 iniciarPainel();
             }
             carregarSugestoes();
@@ -88,13 +81,8 @@
         function togglePassword() {
             const campo = document.getElementById('pass');
             const btn = document.querySelector('.toggle-pass');
-            if (campo.type === "password") {
-                campo.type = "text";
-                btn.innerText = "OCULTAR";
-            } else {
-                campo.type = "password";
-                btn.innerText = "VER";
-            }
+            campo.type = campo.type === "password" ? "text" : "password";
+            btn.innerText = campo.type === "password" ? "VER" : "OCULTAR";
         }
 
         function verificarLogin() {
@@ -107,6 +95,9 @@
                     nomeAtendente = prompt("DIGITE SEU NOME PARA COMEÇAR:");
                     if (!nomeAtendente) nomeAtendente = "Atendente";
                     localStorage.setItem('gb_nome', nomeAtendente);
+                } else {
+                    nomeAtendente = "Caixa";
+                    localStorage.setItem('gb_nome', "Caixa");
                 }
                 iniciarPainel();
             } else { alert("Acesso Inválido!"); }
@@ -115,10 +106,7 @@
         function iniciarPainel() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-screen').classList.remove('hidden');
-            
-            // Lógica para mudar o texto para CAIXA
             document.getElementById('welcome-msg').innerText = (usuarioLogado === "geral" ? "OLÁ, CAIXA" : "OLÁ, " + nomeAtendente.toUpperCase());
-            
             if(usuarioLogado === "geral") {
                 document.getElementById('area-registro').classList.add('hidden');
                 document.getElementById('area-abas').classList.remove('hidden');
@@ -132,8 +120,18 @@
             const n = document.getElementById('numComanda').value;
             const d = document.getElementById('detalhePedido').value;
             if(!n || !d) return alert("PREENCHA TUDO!");
-            salvarSugestao(d);
-            const pedido = { action: 'add', id: Date.now(), numero: n, pedido: d, atendente: nomeAtendente, hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) };
+            
+            salvarSugestao(d); // Salva o item na memória
+
+            const pedido = { 
+                action: 'add', 
+                id: Date.now(), 
+                numero: n, 
+                pedido: d, 
+                atendente: nomeAtendente, 
+                hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) 
+            };
+
             document.getElementById('btn-registrar').disabled = true;
             await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(pedido) });
             document.getElementById('numComanda').value = "";
@@ -144,13 +142,14 @@
 
         function carregarSugestoes() {
             const s = JSON.parse(localStorage.getItem('gb_sugestoes') || "[]");
-            document.getElementById('sugestoes').innerHTML = s.map(i => `<option value="${i}">`).join('');
+            const dl = document.getElementById('sugestoes');
+            dl.innerHTML = s.map(i => `<option value="${i}">`).join('');
         }
 
         function salvarSugestao(texto) {
             let s = JSON.parse(localStorage.getItem('gb_sugestoes') || "[]");
-            if (!s.includes(texto)) {
-                s.push(texto);
+            if (!s.includes(texto.toUpperCase())) {
+                s.push(texto.toUpperCase());
                 localStorage.setItem('gb_sugestoes', JSON.stringify(s));
                 carregarSugestoes();
             }
@@ -190,7 +189,7 @@
                     <div class="item-info">
                         <span><b># ${item.numero}</b> - ${item.hora}</span>
                         <span class="detalhes">${item.pedido}</span>
-                        <span class="atendente-tag">Por: ${item.atendente}</span>
+                        <span class="atendente-tag">Por: ${item.atendente || 'Desconhecido'}</span>
                     </div>
                 </div>
             `).reverse().join('');
