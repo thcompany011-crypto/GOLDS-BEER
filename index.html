@@ -19,7 +19,6 @@
         .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
         .tab-btn { background: #333; color: #888; padding: 10px; font-size: 0.75rem; flex: 1; border-radius: 5px; border: 1px solid #444; font-weight: bold; cursor: pointer; }
         .tab-btn.active { background: var(--gold); color: black; }
-        /* MEMÓRIA RÁPIDA */
         .quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; justify-content: center; }
         .tag-btn { background: #2a2a2a; border: 1px solid var(--gold); color: var(--gold); padding: 7px 14px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; }
         #log-lista { text-align: left; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-top: 15px; }
@@ -47,6 +46,14 @@
         <button onclick="verificarLogin()">ENTRAR</button>
     </div>
 
+    <div id="modal-atendente" class="modal-overlay hidden">
+        <div class="container" style="max-width:320px; border: 2px solid var(--gold);">
+            <h2>QUEM ESTÁ ATENDENDO?</h2>
+            <input type="text" id="input-nome-atendente" placeholder="DIGITE SEU NOME">
+            <button onclick="confirmarNomeAtendente()">CONFIRMAR</button>
+        </div>
+    </div>
+
     <div id="main-screen" class="container hidden">
         <h2 id="welcome-msg">CARREGANDO...</h2>
         
@@ -65,7 +72,7 @@
         </div>
         
         <div id="log-lista">
-            <span id="status-carga" class="loading hidden">Sincronizando com Bling...</span>
+            <span id="status-carga" class="loading hidden">Sincronizando...</span>
             <div id="itens" class="lista-itens">Buscando dados...</div>
             <button id="btn-limpar" class="hidden" onclick="limparHistorico()" style="width:100%; padding:8px; background:#8b0000; color:white; margin-top:15px; font-size:0.7rem; border-radius:5px; border:none;">LIMPAR HISTÓRICO</button>
         </div>
@@ -73,8 +80,8 @@
     </div>
 
     <script>
-        // COLOQUE O LINK DO SEU APPS SCRIPT AQUI:
-        const SCRIPT_URL = "SUA_NOVA_URL_AQUI";
+        // COLOQUE O SEU LINK /EXEC AQUI
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyh6KGmqjDlI2MxyHdQ-lwimvGq863kV-JymTJNKFJuOnt6LlDhGVSIkmim3LljdRwNDw/exec";
         
         const ACESSOS = { "atendentes": "Goldsbeer", "geral": "Goldsbeer2026" };
         let usuarioLogado = "";
@@ -104,21 +111,14 @@
             if (ACESSOS[u] === p) {
                 usuarioLogado = u;
                 localStorage.setItem('gb_user', u);
-                if (u === "atendentes") abrirModalNome(); else iniciarPainel();
+                // Em vez de prompt, abre a janela personalizada
+                if (u === "atendentes") {
+                    document.getElementById('modal-atendente').classList.remove('hidden');
+                    document.getElementById('input-nome-atendente').focus();
+                } else { 
+                    iniciarPainel(); 
+                }
             } else { alert("Senha incorreta!"); }
-        }
-
-        function abrirModalNome() {
-            const m = document.createElement('div');
-            m.id = "modal-nome";
-            m.className = "modal-overlay";
-            m.innerHTML = `<div class="container" style="max-width:320px; border:2px solid var(--gold);">
-                <h2 style="font-size:1.1rem;">QUEM ESTÁ ATENDENDO?</h2>
-                <input type="text" id="input-nome-atendente" placeholder="DIGITE SEU NOME" style="margin-bottom:15px;">
-                <button onclick="confirmarNomeAtendente()">CONFIRMAR</button>
-            </div>`;
-            document.body.appendChild(m);
-            document.getElementById('input-nome-atendente').focus();
         }
 
         function confirmarNomeAtendente() {
@@ -126,9 +126,9 @@
             if (n) {
                 nomeAtendente = n;
                 localStorage.setItem('gb_nome', n);
-                document.getElementById('modal-nome').remove();
+                document.getElementById('modal-atendente').classList.add('hidden');
                 iniciarPainel();
-            } else { alert("Digite seu nome!"); }
+            } else { alert("Por favor, digite seu nome!"); }
         }
 
         function iniciarPainel() {
@@ -154,7 +154,7 @@
             const btn = document.getElementById('btn-registrar');
             btn.disabled = true; btn.innerText = "REGISTRANDO...";
 
-            const p = { action: 'add', id: Date.now(), numero: n, pedido: d, atendente: nomeAtendente, hora: new Date().toISOString() };
+            const p = { action: 'add', id: Date.now(), numero: n, pedido: d, atendente: nomeAtendente };
             
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(p) });
@@ -206,18 +206,18 @@
             
             box.innerHTML = filtrados.map(p => `
                 <div class="item">
-                    ${usuarioLogado === "geral" ? `<input type="checkbox" ${p.aprovado ? 'checked' : ''} onclick="marcarAprovado(${p.id}, this.checked)">` : ''}
+                    ${usuarioLogado === "geral" ? `<input type="checkbox" ${p.aprovado ? 'checked' : ''} onclick="marcarAprovado('${p.id}', this.checked)">` : ''}
                     <div class="item-info">
                         <span><b># ${p.numero}</b> - ${p.hora}</span>
                         <span class="detalhes">${p.pedido}</span>
-                        <span class="atendente-tag">Por: ${p.atendente || 'Sistema'}</span>
+                        <span class="atendente-tag">Por: ${p.atendente || '---'}</span>
                     </div>
                 </div>
             `).reverse().join('');
         }
 
         function fazerLogout() { localStorage.clear(); location.reload(); }
-        async function limparHistorico() { if(confirm("Deseja apagar TODO o histórico da planilha?")) { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'clear' }) }); atualizarDados(); } }
+        async function limparHistorico() { if(confirm("Deseja apagar TODO o histórico?")) { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'clear' }) }); atualizarDados(); } }
     </script>
 </body>
 </html>
