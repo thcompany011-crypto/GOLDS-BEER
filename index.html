@@ -13,6 +13,8 @@
             --gold: #d4af37;
             --dark: #121212;
             --card: #1e1e1e;
+            --new-item: #20311e;
+            --new-border: #5fd35f;
         }
 
         * {
@@ -244,6 +246,20 @@
             line-height: 1.4;
         }
 
+        .item-novo {
+            background: var(--new-item);
+            border: 1px solid var(--new-border);
+            border-radius: 10px;
+            padding: 12px;
+            animation: pulseNovo 1.2s ease-in-out 3;
+        }
+
+        @keyframes pulseNovo {
+            0% { box-shadow: 0 0 0 rgba(95, 211, 95, 0); }
+            50% { box-shadow: 0 0 18px rgba(95, 211, 95, 0.45); }
+            100% { box-shadow: 0 0 0 rgba(95, 211, 95, 0); }
+        }
+
         #splash-screen {
             position: fixed;
             top: 0;
@@ -381,6 +397,10 @@
         let fotoBase64 = "";
         let intervaloAtualizacao = null;
 
+        let idsJaVistos = new Set();
+        let primeiraCargaConferencia = true;
+        let idsNovosDestacados = new Set();
+
         window.onload = function () {
             const u = localStorage.getItem('gb_user');
             if (u && ACESSOS[u]) {
@@ -403,6 +423,57 @@
             c.type = c.type === "password" ? "text" : "password";
         }
 
+        async function solicitarPermissaoNotificacao() {
+            if ("Notification" in window && Notification.permission === "default") {
+                try {
+                    await Notification.requestPermission();
+                } catch (e) {
+                    console.log("Permissão de notificação não concedida.");
+                }
+            }
+        }
+
+        function tocarSomNovoPedido() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+
+                gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.18, audioCtx.currentTime + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.35);
+            } catch (e) {
+                console.log("Não foi possível tocar o som de alerta.");
+            }
+        }
+
+        function mostrarNotificacaoPedido(novoPedido) {
+            if (!("Notification" in window)) return;
+            if (Notification.permission !== "granted") return;
+
+            const numero = obterNumero(novoPedido);
+            const pedido = obterPedido(novoPedido) || "Novo pedido recebido";
+            const atendente = novoPedido.atendente || "Atendente";
+
+            try {
+                new Notification("Nova comanda recebida", {
+                    body: `Comanda #${numero} • ${pedido} • ${atendente}`,
+                    icon: "logo.png"
+                });
+            } catch (e) {
+                console.log("Erro ao exibir notificação.");
+            }
+        }
+
         function verificarLogin() {
             const u = document.getElementById('user').value.toLowerCase().trim();
             const p = document.getElementById('pass').value.trim();
@@ -418,7 +489,7 @@
             }
         }
 
-        function iniciarPainel() {
+        async function iniciarPainel() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-screen').classList.remove('hidden');
 
@@ -431,16 +502,17 @@
                 document.getElementById('area-registro').classList.add('hidden');
                 document.getElementById('area-abas').classList.remove('hidden');
                 document.getElementById('btn-limpar').classList.remove('hidden');
+                await solicitarPermissaoNotificacao();
             } else {
                 document.getElementById('area-registro').classList.remove('hidden');
                 document.getElementById('area-abas').classList.add('hidden');
                 document.getElementById('btn-limpar').classList.add('hidden');
             }
 
-            atualizarDados();
+            await atualizarDados();
 
             if (intervaloAtualizacao) clearInterval(intervaloAtualizacao);
-            intervaloAtualizacao = setInterval(atualizarDados, 10000);
+            intervaloAtualizacao = setInterval(atualizarDados, 3000);
         }
 
         function mostrarUltimos4() {
@@ -526,12 +598,48 @@
                 const r = await fetch(SCRIPT_URL);
                 const dados = await r.json();
                 cachePedidos = Array.isArray(dados) ? dados : [];
+
+                if (tipoUsuario === "conferencia") {
+                    detectarNovosPedidos(cachePedidos);
+                }
+
                 renderizarLista(cachePedidos);
             } catch (e) {
                 document.getElementById('itens').innerHTML = "<p style='color:#444; text-align:center;'>Erro ao carregar dados</p>";
             }
 
             document.getElementById('status-carga').classList.add('hidden');
+        }
+
+        function detectarNovosPedidos(lista) {
+            const pedidosAbertos = lista.filter(item => obterStatus(item) === "aberto");
+            const idsAtuais = new Set(pedidosAbertos.map(item => String(item.id)));
+
+            if (primeiraCargaConferencia) {
+                pedidosAbertos.forEach(item => idsJaVistos.add(String(item.id)));
+                primeiraCargaConferencia = false;
+                return;
+            }
+
+            const novos = pedidosAbertos.filter(item => !idsJaVistos.has(String(item.id)));
+
+            if (novos.length > 0) {
+                novos.forEach(item => {
+                    const id = String(item.id);
+                    idsJaVistos.add(id);
+                    idsNovosDestacados.add(id);
+
+                    mostrarNotificacaoPedido(item);
+                    tocarSomNovoPedido();
+
+                    setTimeout(() => {
+                        idsNovosDestacados.delete(id);
+                        renderizarLista(cachePedidos);
+                    }, 15000);
+                });
+            }
+
+            idsJaVistos = idsAtuais;
         }
 
         function mudarAba(aba) {
@@ -604,32 +712,37 @@
                 return;
             }
 
-            box.innerHTML = filtrados.reverse().map(p => `
-                <div class="item">
-                    <div>
-                        <span>
-                            <b># ${p._numero}</b>
-                            <span class="status-badge ${p._status === 'confirmado' ? 'status-confirmado' : 'status-aberto'}">
-                                ${p._status === 'confirmado' ? 'confirmado' : 'em aberto'}
+            box.innerHTML = filtrados.map(p => {
+                const id = String(p.id);
+                const classeNovo = idsNovosDestacados.has(id) ? "item-novo" : "";
+
+                return `
+                    <div class="item ${classeNovo}">
+                        <div>
+                            <span>
+                                <b># ${p._numero}</b>
+                                <span class="status-badge ${p._status === 'confirmado' ? 'status-confirmado' : 'status-aberto'}">
+                                    ${p._status === 'confirmado' ? 'confirmado' : 'em aberto'}
+                                </span>
                             </span>
-                        </span>
 
-                        <span class="detalhes">Data/Hora: ${p._dataHora}</span>
-                        <span class="atendente-tag">Por: ${p.atendente || '---'}</span>
+                            <span class="detalhes">Data/Hora: ${p._dataHora}</span>
+                            <span class="atendente-tag">Por: ${p.atendente || '---'}</span>
 
-                        ${p._pedido ? `<div class="pedido-box"><strong>Pedido:</strong> ${p._pedido}</div>` : ''}
+                            ${p._pedido ? `<div class="pedido-box"><strong>Pedido:</strong> ${p._pedido}</div>` : ''}
 
-                        ${p._confirmadoPor ? `<span class="confirmado-tag">Confirmado por: ${p._confirmadoPor}</span>` : ''}
+                            ${p._confirmadoPor ? `<span class="confirmado-tag">Confirmado por: ${p._confirmadoPor}</span>` : ''}
 
-                        ${p.foto ? `<img class="item-img" src="${p.foto}" alt="Foto da comanda">` : ''}
+                            ${p.foto ? `<img class="item-img" src="${p.foto}" alt="Foto da comanda">` : ''}
 
-                        ${tipoUsuario === "conferencia" && p._status === "aberto"
-                            ? `<button onclick="marcarAprovado('${p.id}')" style="margin-top:10px;">CONFIRMAR INCLUSÃO</button>`
-                            : ''
-                        }
+                            ${tipoUsuario === "conferencia" && p._status === "aberto"
+                                ? `<button onclick="marcarAprovado('${p.id}')" style="margin-top:10px;">CONFIRMAR INCLUSÃO</button>`
+                                : ''
+                            }
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function fazerLogout() {
