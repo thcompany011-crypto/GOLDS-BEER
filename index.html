@@ -1,780 +1,891 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golds-beer | Gestão Rápida</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#121212">
+<title>GoldsBeer | Gestão Rápida</title>
 
-    <style>
-        :root {
-            --gold: #d4af37;
-            --dark: #121212;
-            --card: #1e1e1e;
-            --new-item: #20311e;
-            --new-border: #5fd35f;
-        }
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121212">
 
-        * {
-            box-sizing: border-box;
-        }
+<style>
 
-        body {
-            background: var(--dark);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 10px;
-        }
+:root{
+    --gold:#d4af37;
+    --dark:#121212;
+    --card:#1e1e1e;
+    --new-item:#20311e;
+    --new-border:#5fd35f;
+}
 
-        .container {
-            background: var(--card);
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid #333;
-            text-align: center;
-            width: 100%;
-            max-width: 450px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+*{
+    box-sizing:border-box;
+}
 
-        h2 {
-            color: var(--gold);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 1.3rem;
-        }
+body{
+    background:var(--dark);
+    color:white;
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    margin:0;
+    padding:10px;
+}
 
-        .input-group {
-            position: relative;
-            width: 100%;
-            margin-bottom: 12px;
-        }
+.container{
+    background:var(--card);
+    padding:25px;
+    border-radius:15px;
+    border:1px solid #333;
+    width:100%;
+    max-width:450px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
 
-        input, textarea {
-            width: 100%;
-            padding: 14px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            background: #2a2a2a;
-            color: white;
-            outline: none;
-            font-size: 1rem;
-        }
+h2{
+    color:var(--gold);
+    text-align:center;
+    margin-bottom:20px;
+}
 
-        input:focus, textarea:focus {
-            border-color: var(--gold);
-        }
+.input-group{
+    position:relative;
+    margin-bottom:12px;
+}
 
-        .toggle-pass {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gold);
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: bold;
-            background: #2a2a2a;
-            padding: 5px;
-            border-radius: 4px;
-        }
+input{
+    width:100%;
+    padding:14px;
+    border-radius:8px;
+    border:1px solid #444;
+    background:#2a2a2a;
+    color:white;
+    outline:none;
+    font-size:1rem;
+}
 
-        button {
-            width: 100%;
-            padding: 14px;
-            background: var(--gold);
-            color: black;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 5px;
-            text-transform: uppercase;
-            transition: 0.3s;
-        }
+input:focus{
+    border-color:var(--gold);
+}
 
-        button:active {
-            transform: scale(0.98);
-            background: #b8962d;
-        }
+.toggle-pass{
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--gold);
+    cursor:pointer;
+    font-size:.75rem;
+    font-weight:bold;
+}
 
-        .hidden {
-            display: none !important;
-        }
+button{
+    width:100%;
+    padding:14px;
+    background:var(--gold);
+    color:black;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:8px;
+}
 
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 15px;
-        }
+.hidden{
+    display:none !important;
+}
 
-        .tab-btn {
-            background: #333;
-            color: #888;
-            padding: 10px;
-            font-size: 0.75rem;
-            flex: 1;
-            border-radius: 5px;
-            border: 1px solid #444;
-            font-weight: bold;
-            cursor: pointer;
-        }
+.tabs{
+    display:flex;
+    gap:5px;
+    margin-bottom:15px;
+}
 
-        .tab-btn.active {
-            background: var(--gold);
-            color: black;
-        }
+.tab-btn{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:5px;
+    background:#333;
+    color:#888;
+    cursor:pointer;
+}
 
-        #log-lista {
-            text-align: left;
-            background: #111;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            margin-top: 15px;
-        }
+.tab-btn.active{
+    background:var(--gold);
+    color:black;
+}
 
-        .lista-itens {
-            max-height: 420px;
-            overflow-y: auto;
-        }
+#log-lista{
+    background:#111;
+    padding:15px;
+    border-radius:8px;
+    border:1px solid #333;
+    margin-top:15px;
+}
 
-        .item {
-            padding: 12px 0;
-            border-bottom: 1px solid #222;
-        }
+.lista-itens{
+    max-height:420px;
+    overflow-y:auto;
+}
 
-        .item:last-child {
-            border-bottom: none;
-        }
+.item{
+    padding:12px;
+    border-bottom:1px solid #222;
+}
 
-        .item b {
-            color: var(--gold);
-            font-size: 1.1rem;
-        }
+.item:last-child{
+    border-bottom:none;
+}
 
-        .detalhes {
-            display: block;
-            color: #ccc;
-            margin-top: 4px;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
+.item b{
+    color:var(--gold);
+}
 
-        .atendente-tag {
-            font-size: 0.75rem;
-            color: #777;
-            display: block;
-            margin-top: 3px;
-            font-style: italic;
-        }
+.status-badge{
+    display:inline-block;
+    margin-left:8px;
+    padding:3px 8px;
+    border-radius:20px;
+    font-size:.68rem;
+    font-weight:bold;
+}
 
-        .confirmado-tag {
-            font-size: 0.75rem;
-            color: #98db98;
-            display: block;
-            margin-top: 3px;
-            font-style: italic;
-        }
+.status-aberto{
+    background:#6a5200;
+    color:#fff1b0;
+}
 
-        .loading {
-            color: var(--gold);
-            font-size: 0.8rem;
-            display: block;
-            text-align: center;
-            margin-bottom: 10px;
-        }
+.status-confirmado{
+    background:#165c16;
+    color:#b9ffb9;
+}
 
-        .status-badge {
-            display: inline-block;
-            margin-left: 8px;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 0.68rem;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+.preview-img,
+.item-img{
+    width:100%;
+    border-radius:10px;
+    margin-top:10px;
+    max-height:220px;
+    object-fit:cover;
+}
 
-        .status-aberto {
-            background: #6a5200;
-            color: #fff1b0;
-        }
+.small-tip{
+    color:#888;
+    font-size:.75rem;
+    margin-bottom:10px;
+}
 
-        .status-confirmado {
-            background: #165c16;
-            color: #b9ffb9;
-        }
+.item-novo{
+    background:var(--new-item);
+    border:1px solid var(--new-border);
+    border-radius:10px;
+}
 
-        .preview-img,
-        .item-img {
-            width: 100%;
-            border-radius: 10px;
-            margin-top: 10px;
-            border: 1px solid #333;
-            object-fit: cover;
-            max-height: 220px;
-        }
+.logout-btn{
+    background:transparent;
+    border:1px solid #333;
+    color:#888;
+}
 
-        .small-tip {
-            color: #888;
-            font-size: 0.78rem;
-            text-align: left;
-            margin-top: -4px;
-            margin-bottom: 10px;
-        }
-
-        .logout-btn {
-            background: transparent;
-            color: gray;
-            border: 1px solid #333;
-            margin-top: 20px;
-            font-size: 0.75rem;
-        }
-
-        .pedido-box {
-            margin-top: 6px;
-            color: #f0f0f0;
-            font-size: 0.92rem;
-            line-height: 1.4;
-        }
-
-        .item-novo {
-            background: var(--new-item);
-            border: 1px solid var(--new-border);
-            border-radius: 10px;
-            padding: 12px;
-            animation: pulseNovo 1.2s ease-in-out 3;
-        }
-
-        @keyframes pulseNovo {
-            0% { box-shadow: 0 0 0 rgba(95, 211, 95, 0); }
-            50% { box-shadow: 0 0 18px rgba(95, 211, 95, 0.45); }
-            100% { box-shadow: 0 0 0 rgba(95, 211, 95, 0); }
-        }
-
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #121212;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-            transition: opacity 0.6s ease, visibility 0.6s ease;
-        }
-
-        #splash-screen.hide {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .splash-content {
-            text-align: center;
-            animation: fadeZoom 1s ease;
-        }
-
-        .splash-logo {
-            width: 180px;
-            max-width: 70vw;
-            object-fit: contain;
-            margin-bottom: 18px;
-        }
-
-        .splash-content h1 {
-            margin: 0;
-            color: #d4af37;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .splash-content p {
-            margin-top: 8px;
-            color: #d0d0d0;
-            font-size: 0.95rem;
-            letter-spacing: 1px;
-        }
-
-        @keyframes fadeZoom {
-            from {
-                opacity: 0;
-                transform: scale(0.92);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-    </style>
+</style>
 </head>
+
 <body>
 
-    <div id="splash-screen">
-        <div class="splash-content">
-            <img src="logo.png" alt="Gold's Beer" class="splash-logo">
-            <h1>Gold's Beer</h1>
-            <p>Bar e Distribuidora</p>
-        </div>
+<div id="login-screen" class="container">
+
+    <h2>GOLDSBEER</h2>
+
+    <div class="input-group">
+        <input type="text" id="user" placeholder="USUÁRIO">
     </div>
 
-    <div id="login-screen" class="container">
-        <h2>GOLDS-BEER</h2>
-
-        <div class="input-group">
-            <input type="text" id="user" placeholder="USUÁRIO">
-        </div>
-
-        <div class="input-group">
-            <input type="password" id="pass" placeholder="SENHA">
-            <span class="toggle-pass" onclick="togglePassword()">VER</span>
-        </div>
-
-        <button onclick="verificarLogin()">ENTRAR</button>
+    <div class="input-group">
+        <input type="password" id="pass" placeholder="SENHA">
+        <span class="toggle-pass" onclick="togglePassword()">VER</span>
     </div>
 
-    <div id="main-screen" class="container hidden">
-        <h2 id="welcome-msg">CARREGANDO...</h2>
+    <button onclick="verificarLogin()">
+        ENTRAR
+    </button>
 
-        <div id="area-registro" class="hidden">
-            <input type="text" id="numComanda" placeholder="NÚMERO DA COMANDA" inputmode="numeric" oninput="mostrarUltimos4()">
-            <div class="small-tip">O sistema salva apenas os 4 últimos números.</div>
+</div>
 
-            <input type="text" id="ultimos4" placeholder="ÚLTIMOS 4 NÚMEROS" readonly>
+<div id="main-screen" class="container hidden">
 
-            <div style="margin-top:10px;">
-                <input type="text" id="pedido" placeholder="PEDIDO (EX: BRAHMA 600)">
-            </div>
+    <h2 id="welcome-msg">CARREGANDO...</h2>
 
-            <div style="margin-top:10px;">
-                <input type="file" id="fotoComanda" accept="image/*" capture="environment" onchange="carregarFoto(event)">
-            </div>
+    <div id="area-registro" class="hidden">
 
-            <img id="previewFoto" class="preview-img hidden" alt="Prévia da comanda">
+        <input
+            type="text"
+            id="numComanda"
+            placeholder="NÚMERO DA COMANDA"
+            inputmode="numeric"
+            oninput="mostrarUltimos4()"
+        >
 
-            <button id="btn-registrar" onclick="registrarComanda()">REGISTRAR COMANDA</button>
+        <div class="small-tip">
+            O sistema salva apenas os 4 últimos números.
         </div>
 
-        <div id="area-abas" class="tabs hidden">
-            <button class="tab-btn active" id="tab-pend" onclick="mudarAba('aberto')">EM ABERTO</button>
-            <button class="tab-btn" id="tab-incl" onclick="mudarAba('confirmado')">CONFIRMADOS</button>
+        <input
+            type="text"
+            id="ultimos4"
+            placeholder="ÚLTIMOS 4 NÚMEROS"
+            readonly
+        >
+
+        <div style="margin-top:10px;">
+            <input
+                type="text"
+                id="pedido"
+                placeholder="PEDIDO"
+            >
         </div>
 
-        <div id="log-lista">
-            <span id="status-carga" class="loading hidden">Sincronizando...</span>
-            <div id="itens" class="lista-itens">Buscando dados...</div>
-            <button id="btn-limpar" class="hidden" onclick="limparHistorico()" style="width:100%; padding:8px; background:#8b0000; color:white; margin-top:15px; font-size:0.7rem; border-radius:5px; border:none;">LIMPAR HISTÓRICO</button>
+        <div style="margin-top:10px;">
+            <input
+                type="file"
+                id="fotoComanda"
+                accept="image/*"
+                capture="environment"
+                onchange="carregarFoto(event)"
+            >
         </div>
 
-        <button onclick="fazerLogout()" class="logout-btn">SAIR DO SISTEMA</button>
+        <img
+            id="previewFoto"
+            class="preview-img hidden"
+        >
+
+        <button
+            id="btn-registrar"
+            onclick="registrarComanda()"
+        >
+            REGISTRAR COMANDA
+        </button>
+
     </div>
 
-    <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyh6KGmqjDlI2MxyHdQ-lwimvGq863kV-JymTJNKFJuOnt6LlDhGVSIkmim3LljdRwNDw/exec";
+    <div id="area-abas" class="tabs hidden">
 
-        const ACESSOS = {
-            "matheus": { senha: "Goldsbeer1003", tipo: "atendente", nome: "Matheus" },
-            "alex th": { senha: "Goldsbeer11", tipo: "atendente", nome: "Alex Th" },
-            "novo": { senha: "teste123", tipo: "atendente", nome: "Novo" },
-            "conferencia": { senha: "admingoldsbeer2026", tipo: "conferencia", nome: "Conferência" }
+        <button
+            class="tab-btn active"
+            id="tab-pend"
+            onclick="mudarAba('aberto')"
+        >
+            EM ABERTO
+        </button>
+
+        <button
+            class="tab-btn"
+            id="tab-incl"
+            onclick="mudarAba('confirmado')"
+        >
+            CONFIRMADOS
+        </button>
+
+    </div>
+
+    <div id="log-lista">
+
+        <div id="itens" class="lista-itens">
+            Carregando...
+        </div>
+
+        <button
+            id="btn-limpar"
+            class="hidden"
+            onclick="limparHistorico()"
+            style="background:#8b0000;"
+        >
+            LIMPAR HISTÓRICO
+        </button>
+
+    </div>
+
+    <button
+        onclick="fazerLogout()"
+        class="logout-btn"
+    >
+        SAIR
+    </button>
+
+</div>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    updateDoc,
+    doc,
+    getDocs,
+    deleteDoc
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+    getStorage,
+    ref,
+    uploadString,
+    getDownloadURL
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+const firebaseConfig = {
+
+    apiKey: "AIzaSyCeZEg5jintah_-BN5mTgUEjLq40Je3bRs",
+
+    authDomain: "goldsbeer.firebaseapp.com",
+
+    projectId: "goldsbeer",
+
+    storageBucket: "goldsbeer.firebasestorage.app",
+
+    messagingSenderId: "307388725248",
+
+    appId: "1:307388725248:web:80ecfbf2fbd23706a7c0e5"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+const storage = getStorage(app);
+
+window.togglePassword = togglePassword;
+window.verificarLogin = verificarLogin;
+window.registrarComanda = registrarComanda;
+window.mudarAba = mudarAba;
+window.marcarAprovado = marcarAprovado;
+window.limparHistorico = limparHistorico;
+window.fazerLogout = fazerLogout;
+window.carregarFoto = carregarFoto;
+window.mostrarUltimos4 = mostrarUltimos4;
+
+const ACESSOS = {
+
+    "matheus":{
+        senha:"Goldsbeer1003",
+        tipo:"atendente",
+        nome:"Matheus"
+    },
+
+    "alex th":{
+        senha:"Goldsbeer11",
+        tipo:"atendente",
+        nome:"Alex Th"
+    },
+
+    "novo":{
+        senha:"teste123",
+        tipo:"atendente",
+        nome:"Novo"
+    },
+
+    "conferencia":{
+        senha:"admingoldsbeer2026",
+        tipo:"conferencia",
+        nome:"Conferência"
+    }
+};
+
+let usuarioLogado = "";
+let nomeAtendente = "";
+let tipoUsuario = "";
+let abaAtual = "aberto";
+let cachePedidos = [];
+let fotoBase64 = "";
+
+function togglePassword(){
+
+    const c = document.getElementById('pass');
+
+    c.type =
+        c.type === "password"
+        ? "text"
+        : "password";
+}
+
+window.onload = function(){
+
+    const u = localStorage.getItem('gb_user');
+
+    if(u && ACESSOS[u]){
+
+        usuarioLogado = u;
+
+        nomeAtendente = ACESSOS[u].nome;
+
+        tipoUsuario = ACESSOS[u].tipo;
+
+        iniciarPainel();
+    }
+};
+
+function verificarLogin(){
+
+    const u =
+        document.getElementById('user')
+        .value.toLowerCase().trim();
+
+    const p =
+        document.getElementById('pass')
+        .value.trim();
+
+    if(
+        ACESSOS[u]
+        &&
+        ACESSOS[u].senha === p
+    ){
+
+        usuarioLogado = u;
+
+        nomeAtendente = ACESSOS[u].nome;
+
+        tipoUsuario = ACESSOS[u].tipo;
+
+        localStorage.setItem('gb_user',u);
+
+        iniciarPainel();
+
+    }else{
+
+        alert("Usuário ou senha incorretos!");
+    }
+}
+
+async function iniciarPainel(){
+
+    document.getElementById('login-screen')
+    .classList.add('hidden');
+
+    document.getElementById('main-screen')
+    .classList.remove('hidden');
+
+    document.getElementById('welcome-msg')
+    .innerText =
+        tipoUsuario === "conferencia"
+        ? "OLÁ, CONFERÊNCIA"
+        : "OLÁ, " + nomeAtendente.toUpperCase();
+
+    if(tipoUsuario === "conferencia"){
+
+        document.getElementById('area-registro')
+        .classList.add('hidden');
+
+        document.getElementById('area-abas')
+        .classList.remove('hidden');
+
+        document.getElementById('btn-limpar')
+        .classList.remove('hidden');
+
+    }else{
+
+        document.getElementById('area-registro')
+        .classList.remove('hidden');
+    }
+
+    atualizarDados();
+}
+
+function mostrarUltimos4(){
+
+    const valor =
+        document.getElementById('numComanda')
+        .value.replace(/\D/g,'');
+
+    document.getElementById('ultimos4')
+    .value = valor.slice(-4);
+}
+
+function carregarFoto(event){
+
+    const arquivo = event.target.files[0];
+
+    const preview =
+        document.getElementById('previewFoto');
+
+    if(!arquivo){
+
+        fotoBase64 = "";
+
+        preview.src = "";
+
+        preview.classList.add('hidden');
+
+        return;
+    }
+
+    const img = new Image();
+
+    const reader = new FileReader();
+
+    reader.onload = function(e){
+
+        img.src = e.target.result;
+
+        img.onload = function(){
+
+            const canvas =
+                document.createElement("canvas");
+
+            const ctx =
+                canvas.getContext("2d");
+
+            const maxWidth = 600;
+
+            const scale =
+                maxWidth / img.width;
+
+            canvas.width = maxWidth;
+
+            canvas.height =
+                img.height * scale;
+
+            ctx.drawImage(
+                img,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            fotoBase64 =
+                canvas.toDataURL(
+                    "image/jpeg",
+                    0.5
+                );
+
+            preview.src = fotoBase64;
+
+            preview.classList.remove('hidden');
         };
+    };
 
-        let usuarioLogado = "";
-        let nomeAtendente = "";
-        let tipoUsuario = "";
-        let abaAtual = "aberto";
-        let cachePedidos = [];
-        let fotoBase64 = "";
-        let intervaloAtualizacao = null;
+    reader.readAsDataURL(arquivo);
+}
 
-        let idsJaVistos = new Set();
-        let primeiraCargaConferencia = true;
-        let idsNovosDestacados = new Set();
+async function registrarComanda(){
 
-        window.onload = function () {
-            const u = localStorage.getItem('gb_user');
-            if (u && ACESSOS[u]) {
-                usuarioLogado = u;
-                nomeAtendente = ACESSOS[u].nome;
-                tipoUsuario = ACESSOS[u].tipo;
-                iniciarPainel();
-            }
-        };
+    const numeroCompleto =
+        document.getElementById('numComanda')
+        .value.replace(/\D/g,'');
 
-        window.addEventListener("load", function () {
-            setTimeout(function () {
-                const splash = document.getElementById("splash-screen");
-                if (splash) splash.classList.add("hide");
-            }, 1800);
-        });
+    const ultimos4 =
+        numeroCompleto.slice(-4);
 
-        function togglePassword() {
-            const c = document.getElementById('pass');
-            c.type = c.type === "password" ? "text" : "password";
+    const pedido =
+        document.getElementById('pedido')
+        .value.trim();
+
+    if(!numeroCompleto || ultimos4.length < 4){
+
+        alert("Digite a comanda.");
+
+        return;
+    }
+
+    if(!pedido){
+
+        alert("Digite o pedido.");
+
+        return;
+    }
+
+    const btn =
+        document.getElementById('btn-registrar');
+
+    btn.disabled = true;
+
+    btn.innerText = "REGISTRANDO...";
+
+    let fotoURL = "";
+
+    try{
+
+        if(fotoBase64){
+
+            const storageRef =
+                ref(
+                    storage,
+                    `comandas/${Date.now()}.jpg`
+                );
+
+            await uploadString(
+                storageRef,
+                fotoBase64,
+                'data_url'
+            );
+
+            fotoURL =
+                await getDownloadURL(storageRef);
         }
 
-        async function solicitarPermissaoNotificacao() {
-            if ("Notification" in window && Notification.permission === "default") {
-                try {
-                    await Notification.requestPermission();
-                } catch (e) {
-                    console.log("Permissão de notificação não concedida.");
-                }
+        await addDoc(
+            collection(db,"comandas"),
+            {
+
+                numero:ultimos4,
+
+                pedido:pedido,
+
+                foto:fotoURL,
+
+                atendente:nomeAtendente,
+
+                status:"aberto",
+
+                confirmado:"",
+
+                data:new Date().toLocaleString()
             }
-        }
+        );
 
-        function tocarSomNovoPedido() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
+        document.getElementById('numComanda').value = "";
 
-                oscillator.type = "sine";
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+        document.getElementById('ultimos4').value = "";
 
-                gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.18, audioCtx.currentTime + 0.02);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        document.getElementById('pedido').value = "";
 
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
+        document.getElementById('fotoComanda').value = "";
 
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.35);
-            } catch (e) {
-                console.log("Não foi possível tocar o som de alerta.");
-            }
-        }
+        document.getElementById('previewFoto').src = "";
 
-        function mostrarNotificacaoPedido(novoPedido) {
-            if (!("Notification" in window)) return;
-            if (Notification.permission !== "granted") return;
+        document.getElementById('previewFoto')
+        .classList.add('hidden');
 
-            const numero = obterNumero(novoPedido);
-            const pedido = obterPedido(novoPedido) || "Novo pedido recebido";
-            const atendente = novoPedido.atendente || "Atendente";
+        fotoBase64 = "";
 
-            try {
-                new Notification("Nova comanda recebida", {
-                    body: `Comanda #${numero} • ${pedido} • ${atendente}`,
-                    icon: "logo.png"
+    }catch(e){
+
+        console.error(e);
+
+        alert("Erro ao registrar.");
+    }
+
+    btn.disabled = false;
+
+    btn.innerText = "REGISTRAR COMANDA";
+}
+
+function atualizarDados(){
+
+    onSnapshot(
+        collection(db,"comandas"),
+
+        (snapshot)=>{
+
+            cachePedidos = [];
+
+            snapshot.forEach((docItem)=>{
+
+                cachePedidos.push({
+
+                    id:docItem.id,
+
+                    ...docItem.data()
                 });
-            } catch (e) {
-                console.log("Erro ao exibir notificação.");
-            }
-        }
+            });
 
-        function verificarLogin() {
-            const u = document.getElementById('user').value.toLowerCase().trim();
-            const p = document.getElementById('pass').value.trim();
-
-            if (ACESSOS[u] && ACESSOS[u].senha === p) {
-                usuarioLogado = u;
-                nomeAtendente = ACESSOS[u].nome;
-                tipoUsuario = ACESSOS[u].tipo;
-                localStorage.setItem('gb_user', u);
-                iniciarPainel();
-            } else {
-                alert("Usuário ou senha incorretos!");
-            }
-        }
-
-        async function iniciarPainel() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-screen').classList.remove('hidden');
-
-            document.getElementById('welcome-msg').innerText =
-                tipoUsuario === "conferencia"
-                    ? "OLÁ, CONFERÊNCIA"
-                    : "OLÁ, " + nomeAtendente.toUpperCase();
-
-            if (tipoUsuario === "conferencia") {
-                document.getElementById('area-registro').classList.add('hidden');
-                document.getElementById('area-abas').classList.remove('hidden');
-                document.getElementById('btn-limpar').classList.remove('hidden');
-                await solicitarPermissaoNotificacao();
-            } else {
-                document.getElementById('area-registro').classList.remove('hidden');
-                document.getElementById('area-abas').classList.add('hidden');
-                document.getElementById('btn-limpar').classList.add('hidden');
-            }
-
-            await atualizarDados();
-
-            if (intervaloAtualizacao) clearInterval(intervaloAtualizacao);
-            intervaloAtualizacao = setInterval(atualizarDados, 3000);
-        }
-
-        function mostrarUltimos4() {
-            const valor = document.getElementById('numComanda').value.replace(/\D/g, '');
-            document.getElementById('ultimos4').value = valor.slice(-4);
-        }
-
-        function carregarFoto(event) {
-            const arquivo = event.target.files[0];
-            const preview = document.getElementById('previewFoto');
-
-            if (!arquivo) {
-                fotoBase64 = "";
-                preview.src = "";
-                preview.classList.add('hidden');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                fotoBase64 = e.target.result;
-                preview.src = fotoBase64;
-                preview.classList.remove('hidden');
-            };
-            reader.readAsDataURL(arquivo);
-        }
-
-        async function registrarComanda() {
-            const numeroCompleto = document.getElementById('numComanda').value.replace(/\D/g, '');
-            const ultimos4 = numeroCompleto.slice(-4);
-            const pedido = document.getElementById('pedido').value.trim();
-
-            if (!numeroCompleto || ultimos4.length < 4) {
-                alert("Digite a comanda. É preciso ter pelo menos 4 números.");
-                return;
-            }
-
-            if (!pedido) {
-                alert("Digite o pedido do cliente.");
-                return;
-            }
-
-            const btn = document.getElementById('btn-registrar');
-            btn.disabled = true;
-            btn.innerText = "REGISTRANDO...";
-
-            const payload = {
-                action: 'add',
-                id: Date.now().toString(),
-                numero: numeroCompleto,
-                pedido: pedido,
-                foto: fotoBase64 || "",
-                atendente: nomeAtendente
-            };
-
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-
-                document.getElementById('numComanda').value = "";
-                document.getElementById('ultimos4').value = "";
-                document.getElementById('pedido').value = "";
-                document.getElementById('fotoComanda').value = "";
-                document.getElementById('previewFoto').src = "";
-                document.getElementById('previewFoto').classList.add('hidden');
-                fotoBase64 = "";
-
-                await atualizarDados();
-            } catch (e) {
-                alert("Erro de conexão!");
-            }
-
-            btn.disabled = false;
-            btn.innerText = "REGISTRAR COMANDA";
-        }
-
-        async function atualizarDados() {
-            document.getElementById('status-carga').classList.remove('hidden');
-
-            try {
-                const r = await fetch(SCRIPT_URL);
-                const dados = await r.json();
-                cachePedidos = Array.isArray(dados) ? dados : [];
-
-                if (tipoUsuario === "conferencia") {
-                    detectarNovosPedidos(cachePedidos);
-                }
-
-                renderizarLista(cachePedidos);
-            } catch (e) {
-                document.getElementById('itens').innerHTML = "<p style='color:#444; text-align:center;'>Erro ao carregar dados</p>";
-            }
-
-            document.getElementById('status-carga').classList.add('hidden');
-        }
-
-        function detectarNovosPedidos(lista) {
-            const pedidosAbertos = lista.filter(item => obterStatus(item) === "aberto");
-            const idsAtuais = new Set(pedidosAbertos.map(item => String(item.id)));
-
-            if (primeiraCargaConferencia) {
-                pedidosAbertos.forEach(item => idsJaVistos.add(String(item.id)));
-                primeiraCargaConferencia = false;
-                return;
-            }
-
-            const novos = pedidosAbertos.filter(item => !idsJaVistos.has(String(item.id)));
-
-            if (novos.length > 0) {
-                novos.forEach(item => {
-                    const id = String(item.id);
-                    idsJaVistos.add(id);
-                    idsNovosDestacados.add(id);
-
-                    mostrarNotificacaoPedido(item);
-                    tocarSomNovoPedido();
-
-                    setTimeout(() => {
-                        idsNovosDestacados.delete(id);
-                        renderizarLista(cachePedidos);
-                    }, 15000);
-                });
-            }
-
-            idsJaVistos = idsAtuais;
-        }
-
-        function mudarAba(aba) {
-            abaAtual = aba;
             renderizarLista(cachePedidos);
         }
+    );
+}
 
-        async function marcarAprovado(id) {
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'confirmar',
-                        id: id,
-                        usuario: nomeAtendente || "Conferência"
-                    })
-                });
-                atualizarDados();
-            } catch (e) {
-                alert("Erro ao confirmar!");
+function mudarAba(aba){
+
+    abaAtual = aba;
+
+    renderizarLista(cachePedidos);
+}
+
+async function marcarAprovado(id){
+
+    try{
+
+        await updateDoc(
+            doc(db,"comandas",id),
+            {
+                status:"confirmado",
+                confirmado:nomeAtendente
             }
-        }
+        );
 
-        function obterStatus(item) {
-            if (item.status) return String(item.status).toLowerCase();
-            return "aberto";
-        }
+    }catch(e){
 
-        function obterNumero(item) {
-            if (item.comanda) return item.comanda;
-            if (item.numero) return String(item.numero).slice(-4);
-            return "----";
-        }
+        alert("Erro ao confirmar!");
+    }
+}
 
-        function obterDataHora(item) {
-            return item.data || "--:--";
-        }
+function renderizarLista(lista){
 
-        function obterConfirmadoPor(item) {
-            return item.confirmado || "";
-        }
+    const box =
+        document.getElementById('itens');
 
-        function obterPedido(item) {
-            return item.pedido || "";
-        }
+    let filtrados =
+        lista.filter((p)=>{
 
-        function renderizarLista(lista) {
-            const box = document.getElementById('itens');
+            if(tipoUsuario === "conferencia"){
 
-            let filtrados = lista.map(item => ({
-                ...item,
-                _status: obterStatus(item),
-                _numero: obterNumero(item),
-                _dataHora: obterDataHora(item),
-                _confirmadoPor: obterConfirmadoPor(item),
-                _pedido: obterPedido(item)
-            }));
-
-            if (tipoUsuario === "conferencia") {
-                filtrados = filtrados.filter(p => p._status === abaAtual);
-            } else {
-                filtrados = filtrados.filter(p => p._status === "aberto");
+                return p.status === abaAtual;
             }
 
-            document.getElementById('tab-pend').className = abaAtual === 'aberto' ? 'tab-btn active' : 'tab-btn';
-            document.getElementById('tab-incl').className = abaAtual === 'confirmado' ? 'tab-btn active' : 'tab-btn';
+            return p.status === "aberto";
+        });
 
-            if (filtrados.length === 0) {
-                box.innerHTML = "<p style='color:#444; text-align:center;'>Nenhum registro</p>";
-                return;
-            }
+    if(filtrados.length === 0){
 
-            box.innerHTML = filtrados.map(p => {
-                const id = String(p.id);
-                const classeNovo = idsNovosDestacados.has(id) ? "item-novo" : "";
+        box.innerHTML =
+            "<p>Nenhum registro</p>";
 
-                return `
-                    <div class="item ${classeNovo}">
-                        <div>
-                            <span>
-                                <b># ${p._numero}</b>
-                                <span class="status-badge ${p._status === 'confirmado' ? 'status-confirmado' : 'status-aberto'}">
-                                    ${p._status === 'confirmado' ? 'confirmado' : 'em aberto'}
-                                </span>
-                            </span>
+        return;
+    }
 
-                            <span class="detalhes">Data/Hora: ${p._dataHora}</span>
-                            <span class="atendente-tag">Por: ${p.atendente || '---'}</span>
+    box.innerHTML =
+        filtrados.map((p)=>{
 
-                            ${p._pedido ? `<div class="pedido-box"><strong>Pedido:</strong> ${p._pedido}</div>` : ''}
+            return `
 
-                            ${p._confirmadoPor ? `<span class="confirmado-tag">Confirmado por: ${p._confirmadoPor}</span>` : ''}
+            <div class="item">
 
-                            ${p.foto ? `<img class="item-img" src="${p.foto}" alt="Foto da comanda">` : ''}
+                <b># ${p.numero}</b>
 
-                            ${tipoUsuario === "conferencia" && p._status === "aberto"
-                                ? `<button onclick="marcarAprovado('${p.id}')" style="margin-top:10px;">CONFIRMAR INCLUSÃO</button>`
-                                : ''
-                            }
-                        </div>
+                <span class="status-badge ${
+                    p.status === "confirmado"
+                    ? "status-confirmado"
+                    : "status-aberto"
+                }">
+
+                    ${
+                        p.status === "confirmado"
+                        ? "confirmado"
+                        : "aberto"
+                    }
+
+                </span>
+
+                <div style="margin-top:8px;">
+                    Pedido: ${p.pedido}
+                </div>
+
+                <div style="font-size:.8rem;color:#999;margin-top:4px;">
+                    ${p.atendente}
+                </div>
+
+                <div style="font-size:.8rem;color:#999;">
+                    ${p.data}
+                </div>
+
+                ${
+                    p.confirmado
+                    ? `
+                    <div style="font-size:.8rem;color:#8f8;margin-top:4px;">
+                        Confirmado por:
+                        ${p.confirmado}
                     </div>
-                `;
-            }).join('');
-        }
-
-        function fazerLogout() {
-            localStorage.removeItem('gb_user');
-            location.reload();
-        }
-
-        async function limparHistorico() {
-            if (confirm("Deseja apagar TODO o histórico?")) {
-                try {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'clear' })
-                    });
-                    atualizarDados();
-                } catch (e) {
-                    alert("Erro ao limpar histórico!");
+                    `
+                    : ""
                 }
-            }
-        }
 
-        if ("serviceWorker" in navigator) {
-            window.addEventListener("load", function () {
-                navigator.serviceWorker.register("service-worker.js")
-                    .then(function () {
-                        console.log("Service Worker registrado com sucesso.");
-                    })
-                    .catch(function (error) {
-                        console.log("Erro ao registrar Service Worker:", error);
-                    });
-            });
-        }
-    </script>
+                ${
+                    p.foto
+                    ? `
+                    <img
+                        class="item-img"
+                        src="${p.foto}"
+                    >
+                    `
+                    : ""
+                }
+
+                ${
+                    tipoUsuario === "conferencia"
+                    &&
+                    p.status === "aberto"
+
+                    ? `
+                    <button
+                        onclick="marcarAprovado('${p.id}')"
+                    >
+                        CONFIRMAR
+                    </button>
+                    `
+                    : ""
+                }
+
+            </div>
+            `;
+        }).join('');
+}
+
+async function limparHistorico(){
+
+    if(
+        !confirm(
+            "Deseja apagar todo o histórico?"
+        )
+    ) return;
+
+    try{
+
+        const querySnapshot =
+            await getDocs(
+                collection(db,"comandas")
+            );
+
+        const promessas = [];
+
+        querySnapshot.forEach((documento)=>{
+
+            promessas.push(
+
+                deleteDoc(
+                    doc(
+                        db,
+                        "comandas",
+                        documento.id
+                    )
+                )
+            );
+        });
+
+        await Promise.all(promessas);
+
+    }catch(e){
+
+        alert("Erro ao limpar.");
+    }
+}
+
+function fazerLogout(){
+
+    localStorage.removeItem('gb_user');
+
+    location.reload();
+}
+
+if("serviceWorker" in navigator){
+
+    window.addEventListener("load",()=>{
+
+        navigator.serviceWorker
+        .register("service-worker.js");
+    });
+}
+
+</script>
+
 </body>
 </html>
